@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gulmohar Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.7.3/dist/full.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gulmohar: {
+                            light: '#ff4b4b',
+                            dark: '#ff8c42'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .header-title {
+            font-family: 'Righteous', cursive;
+        }
+
+        [data-theme='light'] body {
+            background: linear-gradient(135deg, #fff5f5, #ffe5e5);
+        }
+
+        [data-theme='dark'] body {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+        }
+
+        [data-theme='dark'] .card {
+            background-color: #2d2d2d;
+            color: white;
+        }
+
+        [data-theme='dark'] .nav-link {
+            color: #ff4b4b !important;
+        }
+
+        [data-theme='dark'] .modal-box {
+            background-color: #2d2d2d;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-[#ff4b4b] to-[#ff8c42] shadow-lg p-4 text-center">
+        <h1 class="text-3xl font-bold header-title text-white">GULMOHAR</h1>
+    </header>
+    
+    <!-- Navigation Menu (Sticky) -->
+    <nav class="bg-base-100 shadow-md p-4 flex justify-center items-center sticky top-0 z-50">
+        <div class="flex space-x-6 justify-center w-full">
+            <a href="#" class="btn btn-ghost nav-link text-red-500">
+                <i class="fas fa-home mr-2"></i> Home
+            </a>
+            <a href="{{ url_for('connections') }}" class="btn btn-ghost nav-link text-red-500">
+                <i class="fas fa-handshake mr-2"></i> Connections
+            </a>
+            <a href="{{ url_for('events') }}" class="btn btn-ghost nav-link text-red-500">
+                <i class="fas fa-ticket mr-2"></i> Events
+            </a>
+            <a href="{{ url_for('profile') }}" class="btn btn-ghost nav-link text-red-500">
+                <i class="fas fa-user mr-2"></i> Profile
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn btn-ghost nav-link text-red-500">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </a>
+        </div>
+        <!-- Theme Switcher -->
+        <label class="swap swap-rotate ml-4">
+            <input type="checkbox" onclick="toggleTheme()" />
+            <svg class="swap-on fill-current w-6 h-6 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"/></svg>
+            <svg class="swap-off fill-current w-6 h-6 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z"/></svg>
+        </label>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="container mx-auto max-w-3xl p-6 h-screen overflow-y-auto">
+        <!-- Create Post Button -->
+        <button class="btn bg-red-500 hover:bg-red-600 text-white border-none w-full mb-4" 
+                onclick="openCreatePostModal()">
+            Create a Post
+        </button>
+        
+        <!-- Feed Posts -->
+        <div class="space-y-4 overflow-y-auto h-[70vh] p-2">
+            {% for post in posts %}
+            <div class="card shadow-xl p-6">
+                <div class="flex items-center space-x-4">
+                    <div class="avatar">
+                        <div class="w-12 rounded-full ring ring-red-500 ring-offset-2">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ post.email }}" />
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">{{ post.full_name }}</h3>
+                        <p class="text-sm opacity-60">{{ post.created_at }}</p>
+                    </div>
+                </div>
+                <p class="py-4">{{ post.content }}</p>
+                {% if post.image_url %}
+                <img src="{{ post.image_url }}" alt="Post image" class="rounded-lg mb-4">
+                {% endif %}
+                {% if post.link_url %}
+                <a href="{{ post.link_url }}" target="_blank" class="link link-primary mb-4">{{ post.link_url }}</a>
+                {% endif %}
+                <div class="flex space-x-4">
+                    <button class="btn btn-ghost">
+                        <i class="fas fa-heart text-red-500"></i> Like
+                    </button>
+                    <button class="btn btn-ghost">
+                        <i class="fas fa-comment text-red-500"></i> Comment
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Create Post Modal -->
+    <dialog id="create-post-modal" class="modal">
+        <form action="{{ url_for('create_post') }}" method="POST" class="modal-box">
+            <h3 class="font-bold text-lg mb-4">Create a Post</h3>
+            <div class="space-y-4">
+                <textarea name="content" class="textarea textarea-bordered w-full bg-base-200" rows="4" 
+                          placeholder="What's on your mind?" required></textarea>
+                <div class="flex space-x-2">
+                    <label class="btn btn-ghost text-red-500">
+                        <i class="fas fa-image"></i> Image
+                        <input type="file" name="image" class="hidden" accept="image/*">
+                    </label>
+                    <input type="url" name="link_url" placeholder="Add a link (optional)" 
+                           class="input input-bordered bg-base-200">
+                </div>
+            </div>
+            <div class="modal-action">
+                <button type="button" class="btn" onclick="closeCreatePostModal()">Cancel</button>
+                <button type="submit" class="btn bg-red-500 hover:bg-red-600 text-white border-none">Post</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+        }
+
+        function openCreatePostModal() {
+            document.getElementById('create-post-modal').showModal();
+        }
+
+        function closeCreatePostModal() {
+            document.getElementById('create-post-modal').close();
+        }
+    </script>
+</body>
+</html>

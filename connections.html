@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connections - Gulmohar</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.7.3/dist/full.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .header-title {
+            font-family: 'Righteous', cursive;
+        }
+        .profile-header {
+            background: linear-gradient(to right, #ff4b4b, #ff8c42);
+            padding: 2rem;
+            color: white;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-red-50 to-red-100">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-[#ff4b4b] to-[#ff8c42] shadow-lg p-4 text-center">
+        <h1 class="text-3xl font-bold header-title text-white">GULMOHAR</h1>
+    </header>
+    
+    <!-- Navigation Menu -->
+    <nav class="bg-white shadow-md p-4 flex justify-center items-center">
+        <div class="flex space-x-6 justify-center w-full">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-ghost text-red-500">
+                <i class="fas fa-home mr-2"></i> Home
+            </a>
+            <a href="{{ url_for('connections') }}" class="btn btn-ghost text-red-500">
+                <i class="fas fa-handshake mr-2"></i> Connections
+            </a>
+            <a href="{{ url_for('events') }}" class="btn btn-ghost text-red-500">
+                <i class="fas fa-ticket mr-2"></i> Events
+            </a>
+            <a href="{{ url_for('profile') }}" class="btn btn-ghost text-red-500">
+                <i class="fas fa-user mr-2"></i> Profile
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn btn-ghost text-red-500">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto max-w-4xl p-6">
+        <!-- Search & Filters -->
+        <div class="mb-6">
+            <div class="flex gap-4 mb-4">
+                <input type="text" placeholder="Search users..." class="input input-bordered flex-1">
+                <button class="btn bg-red-500 hover:bg-red-600 text-white border-none">
+                    <i class="fas fa-search mr-2"></i> Search
+                </button>
+            </div>
+            <div class="flex gap-4">
+                <select class="select select-bordered w-full">
+                    <option disabled selected>Filter by Batch</option>
+                    {% for year in range(2020, 2028) %}
+                        <option value="{{ year }}">{{ year }}</option>
+                    {% endfor %}
+                </select>
+                <select class="select select-bordered w-full">
+                    <option disabled selected>Filter by School</option>
+                    <option>School of Computer Science & Engineering</option>
+                    <option>School of Design</option>
+                    <option>School of Liberal Arts & Sciences</option>
+                    <option>School of Business</option>
+                    <option>School of Economics</option>
+                    <option>School of Law</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Connection Requests -->
+        {% if notifications %}
+        <div class="mb-6">
+            <h2 class="text-xl font-bold mb-4 text-red-500">
+                <i class="fas fa-bell mr-2"></i> Connection Requests
+            </h2>
+            <div class="space-y-4">
+                {% for notification in notifications %}
+                <div class="card bg-white shadow-lg">
+                    <div class="card-body p-4 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="avatar">
+                                <div class="w-12 rounded-full ring ring-red-500 ring-offset-2">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ notification.sender_email }}" />
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="font-bold">{{ notification.sender_name }}</h3>
+                                <p class="text-sm text-gray-500">Wants to connect with you</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+    <form action="{{ url_for('handle_connection_request') }}" method="POST" class="inline">
+        <input type="hidden" name="connection_id" value="{{ notification.connection_id }}">
+        <input type="hidden" name="action" value="accept">
+                                <button type="submit" class="btn btn-sm bg-red-500 hover:bg-red-600 text-white border-none">
+                                    Accept
+                                </button>
+    </form>
+    <form action="{{ url_for('handle_connection_request') }}" method="POST" class="inline">
+        <input type="hidden" name="connection_id" value="{{ notification.connection_id }}">
+        <input type="hidden" name="action" value="decline">
+                                <button type="submit" class="btn btn-sm btn-ghost">
+                                    Decline
+                                </button>
+    </form>
+</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Users List -->
+        <div class="space-y-4">
+            <h2 class="text-xl font-bold text-red-500">
+                <i class="fas fa-users mr-2"></i> People You May Know
+            </h2>
+            {% for user in users %}
+            <div class="card bg-white shadow-lg">
+                <div class="card-body p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="avatar">
+                            <div class="w-12 rounded-full ring ring-red-500 ring-offset-2">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.email }}" />
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold">{{ user.full_name }}</h3>
+                            <p class="text-sm text-gray-500">
+                                {{ user.department or 'Department not specified' }} | 
+                                Batch of {{ user.batch }}
+                            </p>
+                        </div>
+                    </div>
+<form action="{{ url_for('send_connection_request') }}" method="POST" class="inline">
+    <input type="hidden" name="receiver_id" value="{{ user.user_id }}">
+    {% if user.user_id in connected_users %}
+        {% if connected_users[user.user_id] == 'pending' %}
+                                <button class="btn btn-disabled" disabled>Pending</button>
+        {% else %}
+                                <button class="btn btn-disabled" disabled>Connected</button>
+        {% endif %}
+    {% else %}
+                            <button type="submit" class="btn bg-red-500 hover:bg-red-600 text-white border-none">
+                                <i class="fas fa-user-plus mr-2"></i> Connect
+                            </button>
+    {% endif %}
+</form> 
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if not users %}
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-users text-4xl mb-2"></i>
+                <p>No users found matching your criteria</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="toast toast-top toast-end">
+                {% for message in messages %}
+                <div class="alert alert-info">
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+</body>
+</html> 

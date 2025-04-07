@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Gulmohar</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.7.3/dist/full.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .video-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+        }
+        
+        .video-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .center-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            max-width: 450px;
+            padding: 0 1rem;
+            z-index: 1;
+        }
+
+        .form-section {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .form-section.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Larger input styles */
+        .input, .select {
+            height: 3rem !important;
+            font-size: 1rem !important;
+            padding: 0.75rem 1rem !important;
+        }
+
+        .btn {
+            height: 3rem !important;
+            font-size: 1rem !important;
+        }
+
+        /* New color styles */
+        .text-gulmohar {
+            color: #ff6b6b !important;
+        }
+
+        .input, .select {
+            height: 3rem !important;
+            font-size: 1rem !important;
+            padding: 0.75rem 1rem !important;
+            color: #ff6b6b !important;
+            background: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        .input::placeholder {
+            color: rgba(0, 0, 0, 0.7) !important;
+            font-weight: 500 !important;
+        }
+
+        .select {
+            color: black !important;
+        }
+
+        .select option {
+            color: black !important;
+            background: white !important;
+        }
+
+        .input:focus, .select:focus {
+            border-color: #ff6b6b !important;
+        }
+
+        .btn-gulmohar {
+            background: #ff6b6b !important;
+            color: white !important;
+            border: none !important;
+        }
+
+        .btn-gulmohar:hover {
+            background: #ff8c42 !important;
+        }
+
+        .tab-active {
+            background: #ff6b6b !important;
+            color: white !important;
+        }
+
+        .label-text {
+            color: #ff8c42 !important;
+            font-weight: 500 !important;
+        }
+
+        /* Make input text more visible */
+        .input:not(:placeholder-shown) {
+            color: black !important;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'gulmohar': '#ff6b6b',
+                        'gulmohar-light': '#ff8c42',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <!-- Background Video -->
+    <div class="video-container">
+        <video autoplay muted loop playsinline>
+            <source src="/static/background.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <!-- Main Content -->
+    <div class="center-container">
+        <div class="card glass-card">
+            <div class="card-body p-8">
+                <h2 class="card-title justify-center text-3xl mb-6 text-gulmohar">Welcome to Gulmohar</h2>
+                
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-error mb-4 text-sm bg-opacity-60">
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Toggle Buttons -->
+                <div class="tabs tabs-boxed bg-opacity-30 mb-6">
+                    <a class="tab flex-1 tab-active text-lg" id="login-tab" onclick="toggleForm('login')">Login</a>
+                    <a class="tab flex-1 text-lg text-gulmohar" id="signup-tab" onclick="toggleForm('signup')">Sign Up</a>
+                </div>
+
+                <!-- Login Form -->
+                <form method="POST" action="{{ url_for('login') }}" id="login-form" class="form-section active space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-lg">RVU Email</span>
+                        </label>
+                        <input type="email" name="email" required 
+                               class="input input-bordered" 
+                               placeholder="Enter your RVU email" />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-lg">Password</span>
+                        </label>
+                        <input type="password" name="password" required 
+                               class="input input-bordered"
+                               placeholder="Enter your password" />
+                    </div>
+
+                    <button type="submit" class="btn btn-gulmohar w-full mt-4">
+                        Login
+                    </button>
+                </form>
+
+                <!-- Signup Form -->
+                <form method="POST" action="{{ url_for('signup') }}" id="signup-form" class="form-section space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-lg">Full Name</span>
+                        </label>
+                        <input type="text" name="full_name" required 
+                               class="input input-bordered"
+                               placeholder="Enter your full name" />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-lg">RVU Email</span>
+                        </label>
+                        <input type="email" name="email" required 
+                               placeholder="username@rvu.edu.in"
+                               class="input input-bordered" />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-lg">Password</span>
+                        </label>
+                        <input type="password" name="password" required 
+                               class="input input-bordered"
+                               placeholder="Create a password" />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-lg">Graduation Year</span>
+                        </label>
+                        <select name="graduation_year" required 
+                                class="select select-bordered">
+                            {% for year in range(2020, 2030) %}
+                                <option value="{{ year }}">{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-gulmohar w-full mt-4">
+                        Sign Up
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleForm(type) {
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const loginTab = document.getElementById('login-tab');
+            const signupTab = document.getElementById('signup-tab');
+
+            if (type === 'login') {
+                loginForm.classList.add('active');
+                signupForm.classList.remove('active');
+                loginTab.classList.add('tab-active');
+                signupTab.classList.remove('tab-active');
+            } else {
+                loginForm.classList.remove('active');
+                signupForm.classList.add('active');
+                loginTab.classList.remove('tab-active');
+                signupTab.classList.add('tab-active');
+            }
+        }
+    </script>
+</body>
+</html> 
