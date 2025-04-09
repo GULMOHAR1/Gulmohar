@@ -61,7 +61,6 @@ Pygments
 pyparsing==3.2.0
 pytest==8.3.5
 python-dateutil
-pywin32==306
 pyzmq
 qsharp==1.6.0
 qsharp-widgets==1.6.0
