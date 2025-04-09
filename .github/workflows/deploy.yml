@@ -1,4 +1,4 @@
-name: Flask CI/CD Pipeline
+name: Flask CI/CD Pipeline(cleaned)
 
 on:
   push:
