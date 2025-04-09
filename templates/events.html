@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - Gulmohar</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.7.3/dist/full.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gulmohar: {
+                            light: '#ff4b4b',
+                            dark: '#ff8c42'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .header-title {
+            font-family: 'Righteous', cursive;
+        }
+
+        [data-theme='light'] body {
+            background: linear-gradient(135deg, #fff5f5, #ffe5e5);
+        }
+
+        [data-theme='dark'] body {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+        }
+
+        [data-theme='dark'] .card {
+            background-color: #2d2d2d;
+            color: white;
+        }
+
+        [data-theme='dark'] .nav-link {
+            color: #ff4b4b !important;
+        }
+
+        [data-theme='dark'] .modal-box {
+            background-color: #2d2d2d;
+            color: white;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-[#ff4b4b] to-[#ff8c42] shadow-lg p-4 text-center">
+        <h1 class="text-3xl font-bold header-title text-white">GULMOHAR</h1>
+    </header>
+
+    <!-- Navigation Menu (Sticky) -->
+    <nav class="bg-base-100 shadow-md p-4 flex justify-center items-center sticky top-0 z-50">
+        <div class="flex space-x-6 justify-center w-full">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-ghost nav-link text-red-500">
+                <i class="fas fa-home mr-2"></i> Home
+            </a>
+            <a href="{{ url_for('connections') }}" class="btn btn-ghost nav-link text-red-500">
+                <i class="fas fa-handshake mr-2"></i> Connections
+            </a>
+            <a href="{{ url_for('events') }}" class="btn btn-ghost nav-link text-red-500">
+                <i class="fas fa-ticket mr-2"></i> Events
+            </a>
+            <a href="{{ url_for('profile') }}" class="btn btn-ghost nav-link text-red-500">
+                <i class="fas fa-user mr-2"></i> Profile
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn btn-ghost nav-link text-red-500">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </a>
+        </div>
+
+        <!-- Theme Switcher -->
+        <label class="swap swap-rotate ml-4">
+            <input type="checkbox" onclick="toggleTheme()" />
+            <svg class="swap-on fill-current w-6 h-6 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="..."/></svg>
+            <svg class="swap-off fill-current w-6 h-6 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="..."/></svg>
+        </label>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto max-w-4xl p-6">
+        <button class="btn bg-red-500 hover:bg-red-600 text-white border-none w-full mb-6" 
+                onclick="document.getElementById('create-event-modal').showModal()">
+            <i class="fas fa-plus mr-2"></i> Host an Event
+        </button>
+
+        <!-- Events List -->
+        <div class="space-y-4">
+            {% for event in events %}
+            <div class="card bg-white shadow-lg">
+                <div class="card-body">
+                    <div class="flex justify-between items-start">
+                        <h3 class="card-title text-red-500">{{ event.title }}</h3>
+                        {% if event.organizer_id == session.user_id %}
+                        <div class="badge badge-secondary">You're hosting</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 my-2 text-sm text-gray-600">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-calendar text-red-500"></i>
+                            <span>{{ event.date }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-clock text-red-500"></i>
+                            <span>{{ event.time }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-map-marker-alt text-red-500"></i>
+                            <span>{{ event.location or 'Location TBA' }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-user text-red-500"></i>
+                            <span>Hosted by {{ event.organizer_name }}</span>
+                        </div>
+                    </div>
+
+                    <p class="text-gray-600 my-2">{{ event.description }}</p>
+
+                    <div class="flex items-center justify-between mt-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-users text-red-500"></i>
+                            <span class="text-sm text-gray-600">{{ event.participant_count }} attending</span>
+                        </div>
+
+                        <div class="flex gap-2">
+                            {% if event.organizer_id != session.user_id %}
+                                <form action="{{ url_for('rsvp_event') }}" method="POST">
+                                    <input type="hidden" name="event_id" value="{{ event.event_id }}">
+                                    {% if event.is_participating %}
+                                        <input type="hidden" name="action" value="cancel">
+                                        <button type="submit" class="btn btn-outline btn-error">
+                                            <i class="fas fa-times mr-2"></i> Cancel RSVP
+                                        </button>
+                                    {% else %}
+                                        <input type="hidden" name="action" value="going">
+                                        <button type="submit" class="btn bg-red-500 hover:bg-red-600 text-white border-none">
+                                            <i class="fas fa-check mr-2"></i> RSVP
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            {% endif %}
+                            <button class="btn btn-ghost" 
+                                    onclick="openDetailsModal('{{ event.title }}', '{{ event.date }}', '{{ event.time }}', 
+                                                           '{{ event.description }}', '{{ event.location }}', 
+                                                           '{{ event.organizer_name }}')">
+                                <i class="fas fa-info-circle mr-2"></i> Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if not events %}
+            <div class="text-center py-12">
+                <i class="fas fa-calendar-alt text-red-500 text-4xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-700">No Upcoming Events</h3>
+                <p class="text-gray-500 mt-2">Be the first to host an event!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <dialog id="create-event-modal" class="modal">
+        <form action="{{ url_for('create_event') }}" method="POST" class="modal-box">
+            <h3 class="font-bold text-lg mb-4 text-red-500">Host an Event</h3>
+            <div class="space-y-4">
+                <input type="text" name="title" class="input input-bordered w-full" placeholder="Event Title" required>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="date" name="date" class="input input-bordered" required>
+                    <input type="time" name="time" class="input input-bordered" required>
+                </div>
+                <input type="text" name="location" class="input input-bordered" placeholder="Location">
+                <textarea name="description" class="textarea textarea-bordered w-full" rows="4" placeholder="Event Description" required></textarea>
+            </div>
+            <div class="modal-action">
+                <button type="button" class="btn" onclick="document.getElementById('create-event-modal').close()">Cancel</button>
+                <button type="submit" class="btn bg-red-500 hover:bg-red-600 text-white border-none">Create Event</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="event-details-modal" class="modal">
+        <div class="modal-box">
+            <h3 id="modal-title" class="font-bold text-lg text-red-500 mb-4"></h3>
+            <div class="space-y-4">
+                <p><i class="fas fa-calendar text-red-500 mr-2"></i><span id="modal-date"></span></p>
+                <p><i class="fas fa-clock text-red-500 mr-2"></i><span id="modal-time"></span></p>
+                <p><i class="fas fa-map-marker-alt text-red-500 mr-2"></i><span id="modal-location"></span></p>
+                <p><i class="fas fa-user text-red-500 mr-2"></i><span id="modal-organizer"></span></p>
+                <div class="divider"></div>
+                <p id="modal-description" class="text-gray-600"></p>
+            </div>
+            <div class="modal-action">
+                <button class="btn bg-red-500 hover:bg-red-600 text-white border-none" 
+                        onclick="document.getElementById('event-details-modal').close()">Close</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            html.setAttribute('data-theme', currentTheme === 'light' ? 'dark' : 'light');
+        }
+
+        function openDetailsModal(title, date, time, description, location, organizer) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-date').textContent = date;
+            document.getElementById('modal-time').textContent = time;
+            document.getElementById('modal-location').textContent = location || 'Location TBA';
+            document.getElementById('modal-organizer').textContent = 'Hosted by ' + organizer;
+            document.getElementById('modal-description').textContent = description;
+            document.getElementById('event-details-modal').showModal();
+        }
+    </script>
+</body>
+</html>

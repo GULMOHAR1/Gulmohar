@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Gulmohar</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.7.3/dist/full.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .header-title {
+            font-family: 'Righteous', cursive;
+        }
+        .profile-header {
+            background: linear-gradient(to right, #ff4b4b, #ff8c42);
+            padding: 2rem;
+            color: white;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-red-50 to-red-100">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-[#ff4b4b] to-[#ff8c42] shadow-lg p-4 text-center">
+        <h1 class="text-3xl font-bold header-title text-white">GULMOHAR</h1>
+    </header>
+    
+    <!-- Navigation Menu -->
+    <nav class="bg-white shadow-md p-4 flex justify-center items-center">
+        <div class="flex space-x-6 justify-center w-full">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-ghost text-red-500">
+                <i class="fas fa-home mr-2"></i> Home
+            </a>
+            <a href="{{ url_for('connections') }}" class="btn btn-ghost text-red-500">
+                <i class="fas fa-handshake mr-2"></i> Connections
+            </a>
+            <a href="{{ url_for('events') }}" class="btn btn-ghost text-red-500">
+                <i class="fas fa-ticket mr-2"></i> Events
+            </a>
+            <a href="{{ url_for('profile') }}" class="btn btn-ghost text-red-500">
+                <i class="fas fa-user mr-2"></i> Profile
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn btn-ghost text-red-500">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto max-w-4xl p-4">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="flex items-center gap-6">
+                <!-- Profile Picture -->
+                <form action="{{ url_for('upload_profile_picture') }}" method="POST" enctype="multipart/form-data">
+                    <div class="avatar">
+                        <div class="w-24 rounded-full ring ring-white">
+                            <img src="{{ user.profile_picture or 'https://api.dicebear.com/7.x/avataaars/svg?seed=' ~ user.email }}" />
+                        </div>
+                    </div>
+                    <input type="file" name="profile_picture" class="file-input file-input-sm mt-2" accept="image/*">
+                    <button type="submit" class="btn btn-sm btn-ghost bg-white/20 mt-2">Update Picture</button>
+                </form>
+                
+                <div>
+                    <h1 class="text-3xl font-bold">{{ user.full_name }}</h1>
+                    <div class="badge badge-secondary">
+                        {% if user.user_type == 'Alumni' %}
+                        🎓 Alumni
+                        {% else %}
+                        📚 Student
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Form -->
+        <form action="{{ url_for('update_profile') }}" method="POST" class="space-y-6">
+            <!-- Personal Details -->
+            <div class="card bg-white shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-red-500">Personal Details</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Email (Non-editable) -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">📧 Email</span>
+                            </label>
+                            <input type="email" value="{{ user.email }}" class="input input-bordered" disabled>
+                        </div>
+
+                        <!-- Graduation Year -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">🎓 Graduation Year</span>
+                            </label>
+                            <input type="number" name="graduation_year" value="{{ user.graduation_year }}" 
+                                   class="input input-bordered" {% if user.user_type == 'Alumni' %}disabled{% endif %}>
+                        </div>
+
+                        <!-- Department/School -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">🏛️ School/Department</span>
+                            </label>
+                            <select name="department" class="select select-bordered">
+                                <option value="" {% if not user.department %}selected{% endif %} disabled>Select your school</option>
+                                <option value="School of Computer Science & Engineering" 
+                                        {% if user.department == 'School of Computer Science & Engineering' %}selected{% endif %}>
+                                    School of Computer Science & Engineering
+                                </option>
+                                <option value="School of Design"
+                                        {% if user.department == 'School of Design' %}selected{% endif %}>
+                                    School of Design
+                                </option>
+                                <option value="School of Liberal Arts & Sciences"
+                                        {% if user.department == 'School of Liberal Arts & Sciences' %}selected{% endif %}>
+                                    School of Liberal Arts & Sciences
+                                </option>
+                                <option value="School of Business"
+                                        {% if user.department == 'School of Business' %}selected{% endif %}>
+                                    School of Business
+                                </option>
+                                <option value="School of Economics"
+                                        {% if user.department == 'School of Economics' %}selected{% endif %}>
+                                    School of Economics
+                                </option>
+                                <option value="School of Law"
+                                        {% if user.department == 'School of Law' %}selected{% endif %}>
+                                    School of Law
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">📍 Location</span>
+                            </label>
+                            <input type="text" name="location" value="{{ user.location }}" 
+                                   class="input input-bordered" placeholder="City, Country">
+                        </div>
+
+                        <!-- Current Status -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">🏫 Current Status</span>
+                            </label>
+                            <select name="current_status" class="select select-bordered">
+                                <option value="studying" {% if user.current_status == 'studying' %}selected{% endif %}>
+                                    Studying at RVU
+                                </option>
+                                <option value="working" {% if user.current_status == 'working' %}selected{% endif %}>
+                                    Working Professional
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Job Role -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">💼 Current Job Role</span>
+                            </label>
+                            <input type="text" name="job_role" value="{{ user.job_role }}" 
+                                   class="input input-bordered" placeholder="e.g., Software Engineer">
+                        </div>
+
+                        <!-- Website -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">🌐 Website/Portfolio</span>
+                            </label>
+                            <input type="url" name="website" value="{{ user.website }}" 
+                                   class="input input-bordered" placeholder="https://...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Section -->
+            <div class="card bg-white shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-red-500">About Me</h2>
+                    <textarea name="bio" class="textarea textarea-bordered h-24" 
+                              placeholder="Tell us about yourself...">{{ user.bio }}</textarea>
+                </div>
+            </div>
+
+            <!-- Social Links -->
+            <div class="card bg-white shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-red-500">Social & Academic Links</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">LinkedIn</span>
+                            </label>
+                            <input type="url" name="linkedin" value="{{ user.linkedin }}" 
+                                   class="input input-bordered" placeholder="LinkedIn URL">
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">GitHub</span>
+                            </label>
+                            <input type="url" name="github" value="{{ user.github }}" 
+                                   class="input input-bordered" placeholder="GitHub URL">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-between">
+                <div class="space-x-2">
+                    <button type="submit" class="btn bg-red-500 hover:bg-red-600 text-white border-none">
+                        Save Changes
+                    </button>
+                    <button type="reset" class="btn btn-ghost">Reset</button>
+                </div>
+                <a href="{{ url_for('delete_account') }}" 
+                   class="btn btn-error"
+                   onclick="return confirm('Are you sure you want to delete your account? This cannot be undone.')">
+                    Delete Account
+                </a>
+            </div>
+        </form>
+
+        <!-- User Posts -->
+        <div class="mt-8">
+            <h2 class="text-2xl font-bold mb-4">My Posts</h2>
+            <div class="space-y-4">
+                {% for post in user_posts %}
+                <div class="card bg-white shadow-xl">
+                    <div class="card-body">
+                        <div class="flex justify-between">
+                            <p>{{ post.content }}</p>
+                            <form action="{{ url_for('delete_post', post_id=post.post_id) }}" method="POST" class="inline">
+                                <button type="submit" class="btn btn-ghost btn-sm text-red-500"
+                                        onclick="return confirm('Delete this post?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% if post.image_url %}
+                        <img src="{{ post.image_url }}" alt="Post image" class="rounded-lg mt-4 max-h-96 object-cover">
+                        {% endif %}
+                        {% if post.link_url %}
+                        <a href="{{ post.link_url }}" target="_blank" class="link link-primary mt-2">
+                            {{ post.link_url }}
+                        </a>
+                        {% endif %}
+                        <div class="text-sm text-gray-500 mt-4">
+                            Posted on {{ post.created_at.split('.')[0].replace('T', ' ') if post.created_at else 'Unknown date' }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
