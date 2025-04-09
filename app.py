@@ -90,13 +90,45 @@ def dashboard():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Get all posts with user information
-    posts = cursor.execute('''
-        SELECT posts.*, users.full_name, users.email
-        FROM posts
-        JOIN users ON posts.user_id = users.user_id
-        ORDER BY posts.created_at DESC
-    ''').fetchall()
+    # Get posts with user info, like counts, and user's like status
+    posts_data = cursor.execute('''
+        SELECT 
+            p.*,
+            u.full_name,
+            u.email,
+            COUNT(DISTINCT l.like_id) as like_count,
+            COUNT(DISTINCT c.comment_id) as comment_count,
+            MAX(CASE WHEN l2.user_id = ? THEN 1 ELSE 0 END) as is_liked
+        FROM posts p
+        JOIN users u ON p.user_id = u.user_id
+        LEFT JOIN likes l ON p.post_id = l.post_id
+        LEFT JOIN comments c ON p.post_id = c.post_id
+        LEFT JOIN likes l2 ON p.post_id = l2.post_id AND l2.user_id = ?
+        GROUP BY p.post_id
+        ORDER BY p.created_at DESC
+    ''', (session['user_id'], session['user_id'])).fetchall()
+    
+    # Convert posts to list of dictionaries
+    posts = []
+    for post in posts_data:
+        post_dict = dict(post)
+        
+        # Get comments for this post
+        comments = cursor.execute('''
+            SELECT 
+                c.*,
+                u.full_name,
+                u.email
+            FROM comments c
+            JOIN users u ON c.user_id = u.user_id
+            WHERE c.post_id = ?
+            ORDER BY c.created_at DESC
+            LIMIT 3
+        ''', (post_dict['post_id'],)).fetchall()
+        
+        # Convert comments to list of dictionaries
+        post_dict['comments'] = [dict(comment) for comment in comments]
+        posts.append(post_dict)
     
     conn.close()
     
@@ -121,13 +153,23 @@ def create_post():
     # Handle image upload
     if 'image' in request.files:
         file = request.files['image']
-        if file and file.filename != '' and allowed_file(file.filename):
-            # Generate a secure filename with timestamp to avoid duplicates
-            filename = secure_filename(f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}")
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-            image_url = f'/static/uploads/{filename}'
-            print(f"Image saved to: {filepath}")  # Debug print
+        if file and file.filename != '':
+            if allowed_file(file.filename):
+                # Generate a secure filename with timestamp
+                filename = secure_filename(f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}")
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                
+                try:
+                    file.save(filepath)
+                    image_url = f'/static/uploads/{filename}'
+                    print(f"Image saved to: {filepath}")  # Debug print
+                except Exception as e:
+                    print(f"Error saving image: {e}")
+                    flash('Error uploading image')
+                    return redirect(url_for('dashboard'))
+            else:
+                flash('Invalid file type. Please upload an image file (png, jpg, jpeg, gif).')
+                return redirect(url_for('dashboard'))
 
     conn = get_db_connection()
     try:
@@ -137,8 +179,9 @@ def create_post():
             VALUES (?, ?, ?, ?, ?)
         ''', (session['user_id'], content, image_url, link_url, datetime.now()))
         conn.commit()
+        flash('Post created successfully!')
     except Exception as e:
-        print(f"Error creating post: {e}")  # Debug print
+        print(f"Error creating post: {e}")
         flash('Error creating post')
     finally:
         conn.close()
@@ -563,6 +606,71 @@ def rsvp_event():
     
     return redirect(url_for('events'))
 
+@app.route('/like_post', methods=['POST'])
+def like_post():
+    if 'user_id' not in session:
+        return redirect(url_for('index'))
+    
+    post_id = request.form.get('post_id')
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        # Check if already liked
+        existing_like = cursor.execute('''
+            SELECT like_id FROM likes 
+            WHERE post_id = ? AND user_id = ?
+        ''', (post_id, session['user_id'])).fetchone()
+        
+        if existing_like:
+            # Unlike if already liked
+            cursor.execute('''
+                DELETE FROM likes 
+                WHERE post_id = ? AND user_id = ?
+            ''', (post_id, session['user_id']))
+        else:
+            # Add new like
+            cursor.execute('''
+                INSERT INTO likes (post_id, user_id)
+                VALUES (?, ?)
+            ''', (post_id, session['user_id']))
+        
+        conn.commit()
+    except Exception as e:
+        print(f"Error handling like: {e}")
+    finally:
+        conn.close()
+    
+    return redirect(url_for('dashboard'))
+
+@app.route('/add_comment', methods=['POST'])
+def add_comment():
+    if 'user_id' not in session:
+        return redirect(url_for('index'))
+    
+    post_id = request.form.get('post_id')
+    content = request.form.get('content')
+    
+    if not content or not content.strip():
+        flash('Comment cannot be empty')
+        return redirect(url_for('dashboard'))
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO comments (post_id, user_id, content)
+            VALUES (?, ?, ?)
+        ''', (post_id, session['user_id'], content))
+        conn.commit()
+    except Exception as e:
+        print(f"Error adding comment: {e}")
+        flash('Error adding comment')
+    finally:
+        conn.close()
+    
+    return redirect(url_for('dashboard'))
+
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    port = int(os.environ.get('PORT', 5000))  # Render sets $PORT
+    app.run(host='0.0.0.0', port=port)
